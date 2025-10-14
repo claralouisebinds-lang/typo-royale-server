@@ -8,6 +8,12 @@ const io = new Server(server, {
   cors: { origin: '*' }
 });
 
+// ✅ Friendly root route
+app.get('/', (req, res) => {
+  res.send('Typo Royale backend is running!');
+});
+
+// ✅ Game state
 const rooms = {};
 const sentences = [
   "The quick brown fox jumps over the lazy dog.",
@@ -20,12 +26,14 @@ const sentences = [
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
+  // ✅ Create room
   socket.on('createRoom', (roomId) => {
     if (!rooms[roomId]) {
       rooms[roomId] = { players: [], round: 0, totalRounds: 1 };
     }
   });
 
+  // ✅ Join room with name
   socket.on('joinRoom', (roomId, name) => {
     socket.join(roomId);
     if (!rooms[roomId]) rooms[roomId] = { players: [], round: 0, totalRounds: 1 };
@@ -33,6 +41,7 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('roomUpdate', rooms[roomId].players);
   });
 
+  // ✅ Start game with round count
   socket.on('startGame', (roomId, totalRounds) => {
     const room = rooms[roomId];
     if (!room) return;
@@ -46,6 +55,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // ✅ Submit score and trigger next round
   socket.on('submitScore', ({ roomId, score }) => {
     const room = rooms[roomId];
     if (!room) return;
@@ -65,6 +75,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ✅ Handle disconnect
   socket.on('disconnect', () => {
     for (const roomId in rooms) {
       const room = rooms[roomId];
